@@ -537,5 +537,5 @@
       "replace": "[]($1)"
     }
   ],
-  "MarkdownPaste.path": "${fileDirname}"
+  "MarkdownPaste.path": "${fileWorkspaceFolder}/public/${fileBasenameNoExtension}"
 }
