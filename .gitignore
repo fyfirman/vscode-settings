@@ -3,4 +3,7 @@
 !keybindings.json
 !settings.json
 !snippets/
+!snippets/*
 !extensions.list
+!scripts/
+!scripts/*
