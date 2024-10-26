@@ -35,32 +35,37 @@ check_git_script() {
 # Display menu and get user choice
 get_cron_schedule() {
     echo "Please select the schedule for git auto-commit:"
-    echo "1) Every hour"
+    echo "1) Every minute"
     echo "2) Every 10 minutes"
-    echo "3) Every 4 hours"
-    echo "4) Every 12 hours"
-    echo "5) Every day at 00:00"
+    echo "3) Every hour"
+    echo "4) Every 4 hours"
+    echo "5) Every 12 hours"
+    echo "6) Every day at 00:00"
     echo
-    read -p "Enter your choice (1-5): " choice
+    read -p "Enter your choice (1-6): " choice
     
     case $choice in
         1)
-            CRON_SCHEDULE="0 * * * *"
-            SCHEDULE_DESC="every hour"
+            CRON_SCHEDULE="* * * * *"
+            SCHEDULE_DESC="every minute"
             ;;
         2)
             CRON_SCHEDULE="*/10 * * * *"
             SCHEDULE_DESC="every 10 minutes"
             ;;
         3)
+            CRON_SCHEDULE="0 * * * *"
+            SCHEDULE_DESC="every hour"
+            ;;
+        4)
             CRON_SCHEDULE="0 */4 * * *"
             SCHEDULE_DESC="every 4 hours"
             ;;
-        4)
+        5)
             CRON_SCHEDULE="0 */12 * * *"
             SCHEDULE_DESC="every 12 hours"
             ;;
-        5)
+        6)
             CRON_SCHEDULE="0 0 * * *"
             SCHEDULE_DESC="every day at 00:00"
             ;;
@@ -70,10 +75,18 @@ get_cron_schedule() {
             ;;
     esac
     
-    # Confirm selection
+    # Confirm selection with warning for frequent checks
     echo
     echo "You selected: $SCHEDULE_DESC"
     echo "Cron schedule will be: $CRON_SCHEDULE"
+    
+    # Show warning for very frequent checks
+    if [[ $choice == 1 || $choice == 2 ]]; then
+        echo
+        echo "WARNING: You've selected a very frequent check interval."
+        echo "This might create a lot of log files and system load."
+    fi
+    
     echo
     read -p "Is this correct? (y/n): " confirm
     if [[ $confirm != [yY] ]]; then
