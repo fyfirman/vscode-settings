@@ -527,11 +527,21 @@
   "dart.flutterSdkPath": "/Users/fyfirman/flutter",
   "MarkdownPaste.rules": [
     {
+      // YouTube URL to markdown image + link conversion
+      // Handles various YouTube URL formats and extracts video ID
       "regex": "^(?:https?://)?(?:(?:(?:www\\.?)?youtube\\.com(?:/(?:(?:watch\\?.*?v=([^&\\s]+).*)|))?))",
       "options": "g",
       "replace": "[![](https://img.youtube.com/vi/$1/0.jpg)](https://www.youtube.com/watch?v=$1)"
     },
     {
+      // Convert pages/ to public/ in URLs
+      "regex": "(https?://[^\\s]*)pages/",
+      "options": "ig",
+      "replace": "$1public/"
+    },
+    {
+      // Generic URL to markdown link conversion
+      // Applied after other rules as a catch-all
       "regex": "^(https?://.*)",
       "options": "ig",
       "replace": "[]($1)"
