@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Set error handling
+# Set error handling - TEST
 set -e
 
 # Create log directory if it doesn't exist

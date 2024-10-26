@@ -1,13 +1,20 @@
 #!/bin/bash
 
+# Get current directory
+CURRENT_DIR=$(dirname "$0")
+source "$CURRENT_DIR/utils/utils.sh"
+
 # Set error handling
 set -e
 
+# Change to parent directory
+cd "$CURRENT_DIR/.."
+
 # Create log directory if it doesn't exist
-mkdir -p ./log
+mkdir -p "$CURRENT_DIR/log"
 
 # Set log file path with current date
-LOG_FILE="./log/log-$(date +'%d-%b-%Y').log"
+LOG_FILE="$CURRENT_DIR/log/log-$(date +'%d-%b-%Y').log"
 
 # Function to log messages
 log_message() {
@@ -31,7 +38,7 @@ get_datetime() {
 # Function to cleanup old logs (keeps last 30 days)
 cleanup_old_logs() {
     log_message "Checking for old log files..."
-    find ./log -name "log-*.log" -type f -mtime +30 -exec rm {} \;
+    find "$CURRENT_DIR/log" -name "log-*.log" -type f -mtime +30 -exec rm {} \;
     log_message "Old log cleanup completed"
 }
 
@@ -39,7 +46,10 @@ cleanup_old_logs() {
 main() {
     # Log script start
     log_message "----------------------------------------"
-    log_message "Starting git auto-commit process"
+    log_message "Starting git auto-commit process in parent directory"
+    
+    # Log current working directory
+    log_message "Working directory: $(pwd)"
     
     # Check if we're in a git repository
     check_git_repo
