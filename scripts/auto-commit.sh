@@ -30,7 +30,7 @@ check_git_repo() {
     fi
 }
 
-# Function to get current date and time in the required format
+# Function to get current date and time in the required format test
 get_datetime() {
     date +"Update %A, %d %b %Y %H.%M"
 }
