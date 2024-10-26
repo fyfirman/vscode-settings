@@ -19,6 +19,27 @@ log_message() {
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 GIT_SCRIPT="$SCRIPT_DIR/auto-commit.sh"
 
+# Replace spaces in path with escaped spaces
+GIT_SCRIPT_ESCAPED="${GIT_SCRIPT// /\\ }"
+
+# Function to setup environment variables for cron
+setup_cron_env() {
+    # Get the current PATH
+    CURRENT_PATH=$(echo "$PATH")
+    
+    # Create temporary file for environment setup
+    TEMP_ENV=$(mktemp)
+    
+    # Write environment variables
+    cat > "$TEMP_ENV" << EOL
+PATH=$CURRENT_PATH
+SHELL=/bin/bash
+MAILTO=""
+EOL
+    
+    echo "$TEMP_ENV"
+}
+
 # Check if auto-commit.sh exists
 check_git_script() {
     if [ ! -f "$GIT_SCRIPT" ]; then
@@ -97,10 +118,10 @@ get_cron_schedule() {
 
 # Check if script is already in crontab
 check_existing_crontab() {
-    if crontab -l 2>/dev/null | grep -q "$GIT_SCRIPT"; then
+    if crontab -l 2>/dev/null | grep -q "$GIT_SCRIPT_ESCAPED"; then
         log_message "Script already exists in crontab"
         echo "Current crontab configuration:"
-        crontab -l | grep "$GIT_SCRIPT"
+        crontab -l | grep "$GIT_SCRIPT_ESCAPED"
         echo
         read -p "Do you want to update the schedule? (y/n): " update
         if [[ $update != [yY] ]]; then
@@ -116,20 +137,27 @@ check_existing_crontab() {
 setup_crontab() {
     log_message "Setting up crontab..."
     
-    # Create temporary file
+    # Create temporary file for crontab
     TEMP_CRON=$(mktemp)
     
-    # Save existing crontab to temporary file, removing any existing entries of our script
-    crontab -l 2>/dev/null | grep -v "$GIT_SCRIPT" > "$TEMP_CRON" || echo "" > "$TEMP_CRON"
+    # Get environment setup file
+    ENV_FILE=$(setup_cron_env)
     
-    # Add our script with selected schedule
-    echo "$CRON_SCHEDULE $GIT_SCRIPT" >> "$TEMP_CRON"
+    # Save existing crontab to temporary file, removing any existing entries of our script
+    crontab -l 2>/dev/null | grep -v "$GIT_SCRIPT_ESCAPED" > "$TEMP_CRON" || echo "" > "$TEMP_CRON"
+    
+    # Add environment variables from temp env file
+    cat "$ENV_FILE" >> "$TEMP_CRON"
+    
+    # Add our script with selected schedule and logging
+    echo "$CRON_SCHEDULE $GIT_SCRIPT_ESCAPED >> \"$SCRIPT_DIR/log/cron-\$(date +\%d-\%b-\%Y).log\" 2>&1" >> "$TEMP_CRON"
     
     # Install new crontab
     crontab "$TEMP_CRON"
     
-    # Remove temporary file
+    # Remove temporary files
     rm "$TEMP_CRON"
+    rm "$ENV_FILE"
     
     log_message "Crontab setup completed successfully with schedule: $SCHEDULE_DESC"
 }
@@ -162,7 +190,8 @@ main() {
     
     echo
     echo "Setup completed! The git auto-commit script will run $SCHEDULE_DESC"
-    echo "You can check the logs in: $LOG_FILE"
+    echo "You can find the crontab execution logs in: $SCRIPT_DIR/log/cron-[date].log"
+    echo "You can find the setup logs in: $LOG_FILE"
 }
 
 # Execute main function
