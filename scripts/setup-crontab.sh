@@ -22,22 +22,22 @@ GIT_SCRIPT="$SCRIPT_DIR/auto-commit.sh"
 # Replace spaces in path with escaped spaces
 GIT_SCRIPT_ESCAPED="${GIT_SCRIPT// /\\ }"
 
-# Function to setup environment variables for cron
-setup_cron_env() {
-    # Get the current PATH
-    CURRENT_PATH=$(echo "$PATH")
+# Create the 10-second interval script
+setup_10sec_script() {
+    local WRAPPER_SCRIPT="$SCRIPT_DIR/auto-commit-10sec.sh"
     
-    # Create temporary file for environment setup
-    TEMP_ENV=$(mktemp)
-    
-    # Write environment variables
-    cat > "$TEMP_ENV" << EOL
-PATH=$CURRENT_PATH
-SHELL=/bin/bash
-MAILTO=""
+    # Create wrapper script
+    cat > "$WRAPPER_SCRIPT" << EOL
+#!/bin/bash
+while true; do
+    $GIT_SCRIPT
+    sleep 10
+done
 EOL
     
-    echo "$TEMP_ENV"
+    # Make wrapper script executable
+    chmod +x "$WRAPPER_SCRIPT"
+    echo "$WRAPPER_SCRIPT"
 }
 
 # Check if auto-commit.sh exists
@@ -56,39 +56,54 @@ check_git_script() {
 # Display menu and get user choice
 get_cron_schedule() {
     echo "Please select the schedule for git auto-commit:"
-    echo "1) Every minute"
-    echo "2) Every 10 minutes"
-    echo "3) Every hour"
-    echo "4) Every 4 hours"
-    echo "5) Every 12 hours"
-    echo "6) Every day at 00:00"
+    echo "1) Every 10 seconds (using background process)"
+    echo "2) Every minute"
+    echo "3) Every 10 minutes"
+    echo "4) Every hour"
+    echo "5) Every 4 hours"
+    echo "6) Every 12 hours"
+    echo "7) Every day at 00:00"
     echo
-    read -p "Enter your choice (1-6): " choice
+    read -p "Enter your choice (1-7): " choice
     
     case $choice in
         1)
-            CRON_SCHEDULE="* * * * *"
-            SCHEDULE_DESC="every minute"
+            # Create wrapper script for 10-second interval
+            WRAPPER_SCRIPT=$(setup_10sec_script)
+            WRAPPER_SCRIPT_ESCAPED="${WRAPPER_SCRIPT// /\\ }"
+            CRON_SCHEDULE="@reboot"
+            SCHEDULE_DESC="every 10 seconds"
+            USE_WRAPPER=true
             ;;
         2)
-            CRON_SCHEDULE="*/10 * * * *"
-            SCHEDULE_DESC="every 10 minutes"
+            CRON_SCHEDULE="* * * * *"
+            SCHEDULE_DESC="every minute"
+            USE_WRAPPER=false
             ;;
         3)
-            CRON_SCHEDULE="0 * * * *"
-            SCHEDULE_DESC="every hour"
+            CRON_SCHEDULE="*/10 * * * *"
+            SCHEDULE_DESC="every 10 minutes"
+            USE_WRAPPER=false
             ;;
         4)
-            CRON_SCHEDULE="0 */4 * * *"
-            SCHEDULE_DESC="every 4 hours"
+            CRON_SCHEDULE="0 * * * *"
+            SCHEDULE_DESC="every hour"
+            USE_WRAPPER=false
             ;;
         5)
-            CRON_SCHEDULE="0 */12 * * *"
-            SCHEDULE_DESC="every 12 hours"
+            CRON_SCHEDULE="0 */4 * * *"
+            SCHEDULE_DESC="every 4 hours"
+            USE_WRAPPER=false
             ;;
         6)
+            CRON_SCHEDULE="0 */12 * * *"
+            SCHEDULE_DESC="every 12 hours"
+            USE_WRAPPER=false
+            ;;
+        7)
             CRON_SCHEDULE="0 0 * * *"
             SCHEDULE_DESC="every day at 00:00"
+            USE_WRAPPER=false
             ;;
         *)
             log_message "Invalid choice. Exiting."
@@ -99,13 +114,18 @@ get_cron_schedule() {
     # Confirm selection with warning for frequent checks
     echo
     echo "You selected: $SCHEDULE_DESC"
-    echo "Cron schedule will be: $CRON_SCHEDULE"
+    if [[ "$USE_WRAPPER" == true ]]; then
+        echo "This will create a background process that runs every 10 seconds"
+        echo "The process will start automatically when your system reboots"
+    else
+        echo "Cron schedule will be: $CRON_SCHEDULE"
+    fi
     
     # Show warning for very frequent checks
-    if [[ $choice == 1 || $choice == 2 ]]; then
+    if [[ $choice == 1 || $choice == 2 || $choice == 3 ]]; then
         echo
         echo "WARNING: You've selected a very frequent check interval."
-        echo "This might create a lot of log files and system load."
+        echo "This might create high system load."
     fi
     
     echo
@@ -118,10 +138,10 @@ get_cron_schedule() {
 
 # Check if script is already in crontab
 check_existing_crontab() {
-    if crontab -l 2>/dev/null | grep -q "$GIT_SCRIPT_ESCAPED"; then
+    if crontab -l 2>/dev/null | grep -q "auto-commit"; then
         log_message "Script already exists in crontab"
         echo "Current crontab configuration:"
-        crontab -l | grep "$GIT_SCRIPT_ESCAPED"
+        crontab -l | grep "auto-commit"
         echo
         read -p "Do you want to update the schedule? (y/n): " update
         if [[ $update != [yY] ]]; then
@@ -137,27 +157,30 @@ check_existing_crontab() {
 setup_crontab() {
     log_message "Setting up crontab..."
     
-    # Create temporary file for crontab
+    # Create temporary file
     TEMP_CRON=$(mktemp)
     
-    # Get environment setup file
-    ENV_FILE=$(setup_cron_env)
-    
     # Save existing crontab to temporary file, removing any existing entries of our script
-    crontab -l 2>/dev/null | grep -v "$GIT_SCRIPT_ESCAPED" > "$TEMP_CRON" || echo "" > "$TEMP_CRON"
+    crontab -l 2>/dev/null | grep -v "auto-commit" > "$TEMP_CRON" || echo "" > "$TEMP_CRON"
     
-    # Add environment variables from temp env file
-    cat "$ENV_FILE" >> "$TEMP_CRON"
-    
-    # Add our script with selected schedule and logging
-    echo "$CRON_SCHEDULE $GIT_SCRIPT_ESCAPED >> \"$SCRIPT_DIR/log/cron-\$(date +\%d-\%b-\%Y).log\" 2>&1" >> "$TEMP_CRON"
+    # Add our script with selected schedule
+    if [[ "$USE_WRAPPER" == true ]]; then
+        echo "$CRON_SCHEDULE $WRAPPER_SCRIPT_ESCAPED &" >> "$TEMP_CRON"
+    else
+        echo "$CRON_SCHEDULE $GIT_SCRIPT_ESCAPED" >> "$TEMP_CRON"
+    fi
     
     # Install new crontab
     crontab "$TEMP_CRON"
     
-    # Remove temporary files
+    # Remove temporary file
     rm "$TEMP_CRON"
-    rm "$ENV_FILE"
+    
+    # Start the wrapper script immediately if using 10-second interval
+    if [[ "$USE_WRAPPER" == true ]]; then
+        log_message "Starting 10-second interval script..."
+        $WRAPPER_SCRIPT &
+    fi
     
     log_message "Crontab setup completed successfully with schedule: $SCHEDULE_DESC"
 }
@@ -190,8 +213,10 @@ main() {
     
     echo
     echo "Setup completed! The git auto-commit script will run $SCHEDULE_DESC"
-    echo "You can find the crontab execution logs in: $SCRIPT_DIR/log/cron-[date].log"
-    echo "You can find the setup logs in: $LOG_FILE"
+    if [[ "$USE_WRAPPER" == true ]]; then
+        echo "The background process has been started and will restart on system reboot"
+    fi
+    echo "You can check the setup logs in: $LOG_FILE"
 }
 
 # Execute main function
