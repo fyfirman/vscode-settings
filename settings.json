@@ -535,7 +535,7 @@
     },
     {
       // Convert pages/ to public/ in URLs
-      "regex": "(https?://[^\\s]*)pages/",
+      "regex": "(https?://[^\\s]*)pages/${fileBasename}/",
       "options": "ig",
       "replace": "$1public/"
     },
