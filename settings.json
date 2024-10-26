@@ -535,9 +535,9 @@
     },
     {
       // Convert pages/ to public/ in URLs
-      "regex": "(https?://[^\\s]*)pages/${fileBasename}/",
+      "regex": "(https?://[^\\s]*)pages/",
       "options": "ig",
-      "replace": "$1public/"
+      "replace": "$1public/${fileBasename}/"
     },
     {
       // Generic URL to markdown link conversion
