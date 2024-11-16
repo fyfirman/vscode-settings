@@ -8,6 +8,9 @@
   "[javascriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "gopls": {
+    "ui.navigation.importShortcut": "Definition"
+  },
   "git.enableSmartCommit": true,
   "explorer.confirmDelete": false,
   "security.workspace.trust.untrustedFiles": "open",
