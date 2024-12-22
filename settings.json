@@ -541,5 +541,6 @@
     }
   ],
   "MarkdownPaste.path": "${fileWorkspaceFolder}/public/${fileBasenameNoExtension}",
-  "MarkdownPaste.namePrefix": "image-${fileBasenameNoExtension}-"
+  "MarkdownPaste.namePrefix": "image-${fileBasenameNoExtension}-",
+  "vue.server.hybridMode": false
 }
