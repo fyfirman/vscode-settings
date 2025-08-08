@@ -528,6 +528,7 @@
   "github.copilot.advanced": {
     "debug.useNodeFetcher": true
   },
+  "github.copilot.advanced.debug.useElectronFetcher": false,
   "window.restoreWindows": "one",
   "dart.flutterSdkPath": "/Users/fyfirman/flutter",
   "MarkdownPaste.rules": [
