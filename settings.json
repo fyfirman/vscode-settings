@@ -11,6 +11,7 @@
   "gopls": {
     "ui.navigation.importShortcut": "Definition"
   },
+  "github.copilot.advanced.debug.useElectronFetcher": false,
   "git.enableSmartCommit": true,
   "explorer.confirmDelete": false,
   "security.workspace.trust.untrustedFiles": "open",
