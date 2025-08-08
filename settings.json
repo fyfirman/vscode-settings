@@ -542,5 +542,6 @@
   ],
   "MarkdownPaste.path": "${fileWorkspaceFolder}/public/${fileBasenameNoExtension}",
   "MarkdownPaste.namePrefix": "image-${fileBasenameNoExtension}-",
-  "vue.server.hybridMode": false
+  "vue.server.hybridMode": false,
+  "github.copilot.nextEditSuggestions.enabled": true
 }
