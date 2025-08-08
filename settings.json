@@ -11,9 +11,6 @@
   "gopls": {
     "ui.navigation.importShortcut": "Definition"
   },
-  "github.copilot.advanced": {
-    "debug.useNodeFetcher": true
-  },
   "git.enableSmartCommit": true,
   "explorer.confirmDelete": false,
   "security.workspace.trust.untrustedFiles": "open",
@@ -528,7 +525,9 @@
   "console-ninja.showWhatsNew": false,
   "sonarlint.pathToNodeExecutable": "/Users/plabs.id/.nvm/versions/node/v22.0.0/bin/node",
   "github.copilot.editor.enableAutoCompletions": true,
-  "github.copilot.advanced": {},
+  "github.copilot.advanced": {
+    "debug.useNodeFetcher": true
+  },
   "window.restoreWindows": "one",
   "dart.flutterSdkPath": "/Users/fyfirman/flutter",
   "MarkdownPaste.rules": [
