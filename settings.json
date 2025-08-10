@@ -506,7 +506,6 @@
     "**/*.txt",
     "**/*.mdx"
   ],
-  "diffEditor.hideUnchangedRegions.enabled": true,
   "workbench.editor.empty.hint": "hidden",
   "vsicons.dontShowNewVersionMessage": true,
   "jupyter.askForKernelRestart": false,
