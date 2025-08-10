@@ -526,9 +526,9 @@
   "sonarlint.pathToNodeExecutable": "/Users/plabs.id/.nvm/versions/node/v22.0.0/bin/node",
   "github.copilot.editor.enableAutoCompletions": true,
   "github.copilot.advanced": {
-    "debug.useElectronFetcher": false,
-    "debug.useNodeFetcher": true,
-    "debug.useNodeFetchFetcher": true
+    "debug.useElectronFetcher": true,
+    "debug.useNodeFetcher": false,
+    "debug.useNodeFetchFetcher": false
   },
   "window.restoreWindows": "one",
   "dart.flutterSdkPath": "/Users/fyfirman/flutter",
