@@ -499,7 +499,7 @@
   // "editor.lineNumbers": "relative",
   "vim.useSystemClipboard": true,
   "editor.renderWhitespace": "all",
-  "workbench.colorTheme": "tokyo",
+  "workbench.colorTheme": "Andromeda",
   "grammarly.files.include": [
     "**/readme.md",
     "**/README.md",
